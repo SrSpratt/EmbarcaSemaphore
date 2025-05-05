@@ -24,7 +24,7 @@ include(pico_sdk_import.cmake)
 set(FREERTOS_KERNEL_PATH "C:/Users/rvito/OneDrive/Escritorio/EmbarcaTech/FreeRTOS-Kernel")
 include(${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake)
 
-project(PiscaLed C CXX ASM)
+project(Semaphore C CXX ASM)
 pico_sdk_init()
 
 
@@ -32,7 +32,7 @@ include_directories(${CMAKE_SOURCE_DIR}/lib)
 
 
 add_executable(${PROJECT_NAME}  
-        blinkConta.c 
+        Semaphore.c 
         lib/ssd1306.c
         lib/RVsketches.c
         lib/RVgeneral.c

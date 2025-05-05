@@ -15,6 +15,9 @@
 #define led2 12
 #define led3 13
 
+#define buzzerA 10
+#define buzzerB 21
+
 
 bool nocturnal = false;
 
@@ -26,8 +29,10 @@ void vBlinkLed1Task()
     {
         if (!nocturnal){
             gpio_put(led1, true);
+            pwm_set_gpio_level(buzzerA, 1024);
             vTaskDelay(pdMS_TO_TICKS(100));
             gpio_put(led1, false);
+            pwm_set_gpio_level(buzzerA, 0);
             vTaskDelay(pdMS_TO_TICKS(1000));
         } else {
             vTaskDelay(pdMS_TO_TICKS(100));
@@ -193,6 +198,14 @@ int main()
     draw(sketch, 0, pio, 25);
 
     stdio_init_all();
+
+    gpio_init(buzzerA);
+    gpio_set_dir(buzzerA, GPIO_OUT);
+    gpio_set_function(buzzerA, GPIO_FUNC_PWM);
+    uint8_t slice = pwm_gpio_to_slice_num(buzzerA);
+    pwm_set_wrap(slice, PWM_WRAP);
+    pwm_set_clkdiv(slice, PWM_CLKDIV);
+    pwm_set_enabled(slice, true);
 
     xTaskCreate(vButtonTask, "Button Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vBlinkLed1Task, "Blink Task Led1", configMINIMAL_STACK_SIZE,
