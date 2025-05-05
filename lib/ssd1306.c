@@ -93,6 +93,15 @@ void ssd1306_fill(ssd1306_t *ssd, bool value) {
     }
 }
 
+void ssd1306_fill_rect(ssd1306_t *ssd, bool value, uint8_t left, uint8_t right, uint8_t bottom, uint8_t top) {
+    // Itera por todas as posições do display
+    for (uint8_t y = bottom; y < top; ++y) {
+        for (uint8_t x = left; x < right; ++x) {
+            ssd1306_pixel(ssd, x, y, value);
+        }
+    }
+}
+
 
 
 void ssd1306_rect(ssd1306_t *ssd, uint8_t top, uint8_t left, uint8_t width, uint8_t height, bool value, bool fill) {

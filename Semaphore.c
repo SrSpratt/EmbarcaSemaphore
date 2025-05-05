@@ -1,15 +1,8 @@
-#include "pico/stdlib.h"
 #include <RVgeneral.h>
 #include <RVsketches.h>
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
 #include "task.h"
-#include <stdio.h>
-
-#define I2C_PORT i2c1
-#define I2C_SDA 14
-#define I2C_SCL 15
-#define endereco 0x3C
 
 #define led1 11
 #define led3 13
@@ -71,19 +64,19 @@ void vSoundTask()
     while(true){
         switch(current_stage){
             case GREEN:
-                pwm_set_gpio_level(buzzerA, 1024);
+                //pwm_set_gpio_level(buzzerA, 1024);
                 vTaskDelay(pdMS_TO_TICKS(1000));
                 pwm_set_gpio_level(buzzerA, 0);
                 vTaskDelay(pdMS_TO_TICKS(1000));
                 break;
             case YELLOW:
-                pwm_set_gpio_level(buzzerA, 1024);
+                //pwm_set_gpio_level(buzzerA, 1024);
                 vTaskDelay(pdMS_TO_TICKS(300));
                 pwm_set_gpio_level(buzzerA, 0);
                 vTaskDelay(pdMS_TO_TICKS(300));
                 break;
             case RED:
-                pwm_set_gpio_level(buzzerA, 1024);
+                //pwm_set_gpio_level(buzzerA, 1024);
                 vTaskDelay(pdMS_TO_TICKS(500));
                 pwm_set_gpio_level(buzzerA, 0);
                 vTaskDelay(pdMS_TO_TICKS(1500));
@@ -93,26 +86,53 @@ void vSoundTask()
 }
 
 void draw_stick(ssd1306_t *ssd, bool color){
-        ssd1306_rect(ssd, 32, 57, 11, 5, color, color); // top e left estão invertidos em relação à linha
-        ssd1306_rect(ssd, 32, 61, 3, 18, color, color);
+    ssd1306_fill_rect(ssd, !color, 4, 128 - 4, 26, 64 - 3);
 
-        ssd1306_line(ssd, 61, 39, 55, 45, color);
-        ssd1306_line(ssd, 60, 39, 54, 45, color);
+    ssd1306_rect(ssd, 32, 57, 11, 5, color, color); // top e left estão invertidos em relação à linha
+    ssd1306_rect(ssd, 32, 61, 3, 18, color, color);
 
-        ssd1306_line(ssd, 63, 39, 69, 45, color);
-        ssd1306_line(ssd, 64, 39, 70, 45, color);
+    ssd1306_line(ssd, 61, 39, 55, 45, color);
+    ssd1306_line(ssd, 60, 39, 54, 45, color);
 
-        ssd1306_line(ssd, 62, 49, 56, 58, color);
-        ssd1306_line(ssd, 61, 49, 55, 58, color); 
+    ssd1306_line(ssd, 63, 39, 69, 45, color);
+    ssd1306_line(ssd, 64, 39, 70, 45, color);
 
-        ssd1306_line(ssd, 64, 49, 70, 58, color);
-        ssd1306_line(ssd, 63, 49, 69, 58, color); 
+    ssd1306_line(ssd, 62, 49, 56, 58, color);
+    ssd1306_line(ssd, 61, 49, 55, 58, color); 
+
+    ssd1306_line(ssd, 64, 49, 70, 58, color);
+    ssd1306_line(ssd, 63, 49, 69, 58, color); 
+}
+
+void draw_attention(ssd1306_t *ssd, bool color){
+    ssd1306_fill_rect(ssd, !color, 4, 128 - 4, 26, 64 - 3);
+
+    ssd1306_line(ssd, 57, 32, 70, 32, color);
+
+    ssd1306_line(ssd, 57, 32, 61, 50, color);
+    ssd1306_line(ssd, 66, 50, 70, 32, color);
+    ssd1306_line(ssd, 58, 32, 62, 50, color);
+    ssd1306_line(ssd, 65, 50, 69, 32, color);
+
+    ssd1306_line(ssd, 61, 50, 66, 50, color);
+
+    ssd1306_rect(ssd, 56, 61, 5, 5, color, color);
+}
+
+void draw_forbidding(ssd1306_t *ssd, bool color){
+    ssd1306_fill_rect(ssd, !color, 4, 128 - 4, 26, 64 - 3);
+
+    ssd1306_line(ssd, 50, 32, 75, 60, color);
+    ssd1306_line(ssd, 51, 32, 76, 60, color);
+    ssd1306_line(ssd, 52, 32, 77, 60, color);
+
+    ssd1306_line(ssd, 50, 60, 75, 32, color);
+    ssd1306_line(ssd, 49, 60, 74, 32, color);
+    ssd1306_line(ssd, 48, 60, 73, 32, color);
 }
 
 void vDisplay3Task()
 {
-    
-    init_interfaces();
     ssd1306_t ssd;
     init_display(&ssd);
 
@@ -123,14 +143,26 @@ void vDisplay3Task()
     ssd1306_fill(&ssd, !color);                          // Limpa o display
     ssd1306_rect(&ssd, 3, 3, 122, 60, color, !color);      // Desenha um retângulo
     ssd1306_line(&ssd, 3, 25, 123, 25, color);           // Desenha uma linha
-    //ssd1306_line(&ssd, 3, 37, 123, 37, cor);           // Desenha uma linha
     ssd1306_draw_string(&ssd, "CEPEDI   TIC37", 8, 6); // Desenha uma string
     ssd1306_draw_string(&ssd, "EMBARCATECH", 20, 16);  // Desenha uma string
     while (true)
     {
         sprintf(str_y, "%d", counter); // Converte em string
         counter++;                     // Incrementa o contador
-        draw_stick(&ssd, color);
+        switch(current_stage){
+            case GREEN:
+                draw_stick(&ssd, color);
+                break;
+            case YELLOW:
+                draw_attention(&ssd, color);
+                break;
+            case RED:
+                draw_forbidding(&ssd, color);
+                break;
+            default:
+                ssd1306_fill_rect(&ssd, !color, 4, 128 - 4, 26, 64 - 3);
+                break;
+        }
 
         //ssd1306_draw_string(&ssd, "  FreeRTOS", 10, 28); // Desenha uma string
         //ssd1306_draw_string(&ssd, "Contador  LEDs", 10, 41);    // Desenha uma string
@@ -206,16 +238,15 @@ int main()
             .blue = 0.0, .green = 0.01, .red = 0.0
         },
         .figure = {
+            1, 1, 1, 1, 1,
             0, 1, 1, 1, 0,
             0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
             0, 1, 1, 1, 0,
+            1, 1, 1, 1, 1,
         } 
     };
 
-    draw(sketch, 0, pio, 25);
-
-    stdio_init_all();
+    init_interfaces();
 
     gpio_init(led1);
     gpio_init(led3);
