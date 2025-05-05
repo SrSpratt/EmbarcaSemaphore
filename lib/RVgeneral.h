@@ -68,6 +68,14 @@ typedef struct interruption_context{
     bool play; /**< Flag para indicar o estado do jogo. */
 } irq_context;
 
+/**
+ * @brief Contexto para manipulação de tarefas de interrupção do SO.
+ */
+typedef struct task_context{
+    uint8_t pin; /**< Último pino que gerou interrupção. */
+    bool toggle; /**< Modo */
+} task_context;
+
 
 /**
  * @brief Variável global do contexto de interrupção.

@@ -98,16 +98,22 @@ void vDisplay3Task()
     }
 }
 
+volatile uint32_t interval_task = 0;
 void vButtonTask(void *pointer){
-    //bool *nocturnal = (bool *)pointer;
+    bool *nocturnal = (bool *)pointer;
     gpio_init(5);
     gpio_set_dir(5, GPIO_IN);
     gpio_pull_up(5);
 
     while(true){
         //printf("Botão\n");
-        if (!gpio_get(5))
-            printf("Pressionado!\n");
+        uint32_t absolute_counter = to_us_since_boot(get_absolute_time());
+        if (absolute_counter - interval_task > 250000){
+            if (!gpio_get(5))
+                *nocturnal = !(*nocturnal);
+            printf("Noc? \n%s\n", (*nocturnal) ? "YES" : "NO");
+            interval_task = absolute_counter;
+        }
 
         vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -166,10 +172,9 @@ int main()
     draw(sketch, 0, pio, 25);
     bool nocturnal = false;
 
-
     stdio_init_all();
 
-    xTaskCreate(vButtonTask, "Button Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(vButtonTask, "Button Task", configMINIMAL_STACK_SIZE, &nocturnal, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vBlinkLed1Task, "Blink Task Led1", configMINIMAL_STACK_SIZE,
          NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vBlinkLed2Task, "Blink Task Led2", configMINIMAL_STACK_SIZE, 
