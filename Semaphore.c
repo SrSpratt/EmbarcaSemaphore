@@ -12,74 +12,46 @@
 #define endereco 0x3C
 
 #define led1 11
-#define led2 12
 #define led3 13
 
 #define buzzerA 10
 #define buzzerB 21
 
-
+typedef enum {
+    GREEN,
+    YELLOW,
+    RED
+} stage;
+volatile stage current_stage = GREEN;
 bool nocturnal = false;
 
 void vBlinkLed1Task()
 {
-    gpio_init(led1);
-    gpio_set_dir(led1, GPIO_OUT);
     while (true)
     {
         if (!nocturnal){
+
+            current_stage = GREEN;
             gpio_put(led1, true);
-            pwm_set_gpio_level(buzzerA, 1024);
-            vTaskDelay(pdMS_TO_TICKS(100));
-            gpio_put(led1, false);
-            pwm_set_gpio_level(buzzerA, 0);
-            vTaskDelay(pdMS_TO_TICKS(1000));
-        } else {
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-    }
-}
+            vTaskDelay(pdMS_TO_TICKS(6000));
 
-void vBlinkLed2Task()
-{
-    gpio_init(led2);
-    gpio_set_dir(led2, GPIO_OUT);
-    while (true)
-    {
-        if (!nocturnal){
-            gpio_put(led2, true);
-            vTaskDelay(pdMS_TO_TICKS(100));
-            gpio_put(led2, false);
-            vTaskDelay(pdMS_TO_TICKS(1000));
-        } else {
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-    }
-}
-
-void vBlinkLed3Task()
-{
-    gpio_init(led3);
-    gpio_set_dir(led3, GPIO_OUT);
-    while (true)
-    {
-        if (!nocturnal){
+            current_stage = YELLOW;
             gpio_put(led3, true);
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(6000));
+
+            current_stage = RED;
+            gpio_put(led1, false);
+            vTaskDelay(pdMS_TO_TICKS(6000));
             gpio_put(led3, false);
-            vTaskDelay(pdMS_TO_TICKS(1000));
+
         } else {
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
 }
 
-void vBlinkNocturnal()
+void vBlinkNocturnalTask()
 {
-     gpio_init(led1);
-     gpio_init(led3);
-     gpio_set_dir(led1, GPIO_OUT);
-     gpio_set_dir(led3, GPIO_OUT);
     while(true){
         if (nocturnal){
             gpio_put(led1, true);
@@ -89,9 +61,52 @@ void vBlinkNocturnal()
             gpio_put(led3, false);
             vTaskDelay(pdMS_TO_TICKS(500));
         } else {
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
+}
+
+void vSoundTask()
+{
+    while(true){
+        switch(current_stage){
+            case GREEN:
+                pwm_set_gpio_level(buzzerA, 1024);
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                pwm_set_gpio_level(buzzerA, 0);
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                break;
+            case YELLOW:
+                pwm_set_gpio_level(buzzerA, 1024);
+                vTaskDelay(pdMS_TO_TICKS(300));
+                pwm_set_gpio_level(buzzerA, 0);
+                vTaskDelay(pdMS_TO_TICKS(300));
+                break;
+            case RED:
+                pwm_set_gpio_level(buzzerA, 1024);
+                vTaskDelay(pdMS_TO_TICKS(500));
+                pwm_set_gpio_level(buzzerA, 0);
+                vTaskDelay(pdMS_TO_TICKS(1500));
+                break;
+        }
+    }
+}
+
+void draw_stick(ssd1306_t *ssd, bool color){
+        ssd1306_rect(ssd, 32, 57, 11, 5, color, color); // top e left estão invertidos em relação à linha
+        ssd1306_rect(ssd, 32, 61, 3, 18, color, color);
+
+        ssd1306_line(ssd, 61, 39, 55, 45, color);
+        ssd1306_line(ssd, 60, 39, 54, 45, color);
+
+        ssd1306_line(ssd, 63, 39, 69, 45, color);
+        ssd1306_line(ssd, 64, 39, 70, 45, color);
+
+        ssd1306_line(ssd, 62, 49, 56, 58, color);
+        ssd1306_line(ssd, 61, 49, 55, 58, color); 
+
+        ssd1306_line(ssd, 64, 49, 70, 58, color);
+        ssd1306_line(ssd, 63, 49, 69, 58, color); 
 }
 
 void vDisplay3Task()
@@ -102,21 +117,24 @@ void vDisplay3Task()
     init_display(&ssd);
 
     char str_y[5]; // Buffer para armazenar a string
-    int contador = 0;
-    bool cor = true;
+    int counter = 0;
+    bool color = true;
+
+    ssd1306_fill(&ssd, !color);                          // Limpa o display
+    ssd1306_rect(&ssd, 3, 3, 122, 60, color, !color);      // Desenha um retângulo
+    ssd1306_line(&ssd, 3, 25, 123, 25, color);           // Desenha uma linha
+    //ssd1306_line(&ssd, 3, 37, 123, 37, cor);           // Desenha uma linha
+    ssd1306_draw_string(&ssd, "CEPEDI   TIC37", 8, 6); // Desenha uma string
+    ssd1306_draw_string(&ssd, "EMBARCATECH", 20, 16);  // Desenha uma string
     while (true)
     {
-        sprintf(str_y, "%d", contador); // Converte em string
-        contador++;                     // Incrementa o contador
-        ssd1306_fill(&ssd, !cor);                          // Limpa o display
-        ssd1306_rect(&ssd, 3, 3, 122, 60, cor, !cor);      // Desenha um retângulo
-        ssd1306_line(&ssd, 3, 25, 123, 25, cor);           // Desenha uma linha
-        ssd1306_line(&ssd, 3, 37, 123, 37, cor);           // Desenha uma linha
-        ssd1306_draw_string(&ssd, "CEPEDI   TIC37", 8, 6); // Desenha uma string
-        ssd1306_draw_string(&ssd, "EMBARCATECH", 20, 16);  // Desenha uma string
-        ssd1306_draw_string(&ssd, "  FreeRTOS", 10, 28); // Desenha uma string
-        ssd1306_draw_string(&ssd, "Contador  LEDs", 10, 41);    // Desenha uma string
-        ssd1306_draw_string(&ssd, str_y, 40, 52);          // Desenha uma string
+        sprintf(str_y, "%d", counter); // Converte em string
+        counter++;                     // Incrementa o contador
+        draw_stick(&ssd, color);
+
+        //ssd1306_draw_string(&ssd, "  FreeRTOS", 10, 28); // Desenha uma string
+        //ssd1306_draw_string(&ssd, "Contador  LEDs", 10, 41);    // Desenha uma string
+        //ssd1306_draw_string(&ssd, str_y, 40, 52);          // Desenha uma string
         ssd1306_send_data(&ssd);                           // Atualiza o display
         sleep_ms(735);
     }
@@ -199,6 +217,11 @@ int main()
 
     stdio_init_all();
 
+    gpio_init(led1);
+    gpio_init(led3);
+    gpio_set_dir(led1, GPIO_OUT);
+    gpio_set_dir(led3, GPIO_OUT);
+
     gpio_init(buzzerA);
     gpio_set_dir(buzzerA, GPIO_OUT);
     gpio_set_function(buzzerA, GPIO_FUNC_PWM);
@@ -210,13 +233,10 @@ int main()
     xTaskCreate(vButtonTask, "Button Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vBlinkLed1Task, "Blink Task Led1", configMINIMAL_STACK_SIZE,
          NULL, tskIDLE_PRIORITY, NULL);
-    xTaskCreate(vBlinkLed2Task, "Blink Task Led2", configMINIMAL_STACK_SIZE, 
-        NULL, tskIDLE_PRIORITY, NULL);
-    xTaskCreate(vBlinkLed3Task, "Blink Task Led3", configMINIMAL_STACK_SIZE, 
-        NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vDisplay3Task, "Cont Task Disp3", configMINIMAL_STACK_SIZE, 
         NULL, tskIDLE_PRIORITY, NULL);
-    xTaskCreate(vBlinkNocturnal, "Cont Nocturnal", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(vBlinkNocturnalTask, "Cont Nocturnal", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(vSoundTask, "Sound", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
     vTaskStartScheduler();
     panic_unsupported();
 
