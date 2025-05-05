@@ -15,16 +15,23 @@
 #define led2 12
 #define led3 13
 
+
+bool nocturnal = false;
+
 void vBlinkLed1Task()
 {
     gpio_init(led1);
     gpio_set_dir(led1, GPIO_OUT);
     while (true)
     {
-        gpio_put(led1, true);
-        vTaskDelay(pdMS_TO_TICKS(100));
-        gpio_put(led1, false);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        if (!nocturnal){
+            gpio_put(led1, true);
+            vTaskDelay(pdMS_TO_TICKS(100));
+            gpio_put(led1, false);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
     }
 }
 
@@ -34,10 +41,14 @@ void vBlinkLed2Task()
     gpio_set_dir(led2, GPIO_OUT);
     while (true)
     {
-        gpio_put(led2, true);
-        vTaskDelay(pdMS_TO_TICKS(100));
-        gpio_put(led2, false);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        if (!nocturnal){
+            gpio_put(led2, true);
+            vTaskDelay(pdMS_TO_TICKS(100));
+            gpio_put(led2, false);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
     }
 }
 
@@ -47,26 +58,34 @@ void vBlinkLed3Task()
     gpio_set_dir(led3, GPIO_OUT);
     while (true)
     {
-        gpio_put(led3, true);
-        vTaskDelay(pdMS_TO_TICKS(100));
-        gpio_put(led3, false);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        if (!nocturnal){
+            gpio_put(led3, true);
+            vTaskDelay(pdMS_TO_TICKS(100));
+            gpio_put(led3, false);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
     }
 }
 
 void vBlinkNocturnal()
 {
-    gpio_init(led1);
-    gpio_init(led2);
-    gpio_set_dir(led1, GPIO_OUT);
-    gpio_set_dir(led2, GPIO_OUT);
+     gpio_init(led1);
+     gpio_init(led3);
+     gpio_set_dir(led1, GPIO_OUT);
+     gpio_set_dir(led3, GPIO_OUT);
     while(true){
-        gpio_put(led1, true);
-        gpio_put(led2, true);
-        vTaskDelay(pdMS_TO_TICKS(2000));
-        gpio_put(led1, false);
-        gpio_put(led2, false);
-        vTaskDelay(pdMS_TO_TICKS(500));
+        if (nocturnal){
+            gpio_put(led1, true);
+            gpio_put(led3, true);
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            gpio_put(led1, false);
+            gpio_put(led3, false);
+            vTaskDelay(pdMS_TO_TICKS(500));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
     }
 }
 
@@ -99,8 +118,7 @@ void vDisplay3Task()
 }
 
 volatile uint32_t interval_task = 0;
-void vButtonTask(void *pointer){
-    bool *nocturnal = (bool *)pointer;
+void vButtonTask(){
     gpio_init(5);
     gpio_set_dir(5, GPIO_IN);
     gpio_pull_up(5);
@@ -108,11 +126,14 @@ void vButtonTask(void *pointer){
     while(true){
         //printf("Botão\n");
         uint32_t absolute_counter = to_us_since_boot(get_absolute_time());
+        bool pressed = !gpio_get(5);
         if (absolute_counter - interval_task > 250000){
-            if (!gpio_get(5))
-                *nocturnal = !(*nocturnal);
-            printf("Noc? \n%s\n", (*nocturnal) ? "YES" : "NO");
-            interval_task = absolute_counter;
+            if (pressed){
+                nocturnal = !nocturnal;
+                printf("Pressionado!\n");
+                printf("Noc? \n%s\n", nocturnal ? "YES" : "NO");
+                interval_task = absolute_counter;
+            }
         }
 
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -170,11 +191,10 @@ int main()
     };
 
     draw(sketch, 0, pio, 25);
-    bool nocturnal = false;
 
     stdio_init_all();
 
-    xTaskCreate(vButtonTask, "Button Task", configMINIMAL_STACK_SIZE, &nocturnal, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(vButtonTask, "Button Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vBlinkLed1Task, "Blink Task Led1", configMINIMAL_STACK_SIZE,
          NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vBlinkLed2Task, "Blink Task Led2", configMINIMAL_STACK_SIZE, 
@@ -183,6 +203,7 @@ int main()
         NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vDisplay3Task, "Cont Task Disp3", configMINIMAL_STACK_SIZE, 
         NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(vBlinkNocturnal, "Cont Nocturnal", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
     vTaskStartScheduler();
     panic_unsupported();
 
