@@ -1,4 +1,7 @@
 #include <RVsketches.h>
+#include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
+#include "task.h"
 
 double* sketch_array(char character) {
     static double white[] = {
@@ -43,6 +46,7 @@ uint32_t rgb_matrix(rgb color){
 
 void draw(sketch sketch, uint32_t led_cfg, pio pio, const uint8_t vector_size){
     pio_sm_restart(pio.address, pio.state_machine);
+    pio_sm_clear_fifos(pio.address, pio.state_machine);
 
     for(int16_t i = 0; i < vector_size; i++){
         if (sketch.figure[i] == 1)
