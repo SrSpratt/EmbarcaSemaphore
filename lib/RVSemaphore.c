@@ -197,6 +197,7 @@ void vSoundTask()
         }
     }
 }
+
 //desenha a pessoa
 void draw_stick(ssd1306_t *ssd, bool color, int frame){
     ssd1306_fill_rect(ssd, !color, 4, 128 - 4, 26, 64 - 3);
@@ -220,6 +221,18 @@ void draw_stick(ssd1306_t *ssd, bool color, int frame){
             ssd1306_line(ssd, 62, 49, 68, 58, color);
             break;
     }
+}
+
+//desenha a pessoa
+void draw_car(ssd1306_t *ssd, bool color, int frame){
+    ssd1306_fill_rect(ssd, !color, 4, 128 - 4, 26, 64 - 3);
+
+    ssd1306_rect(ssd, 35, 57, 15, 10, color, color); // top e left estão invertidos em relação à linha
+    ssd1306_rect(ssd, 40, 50, 28, 7, color, color);
+
+    ssd1306_rect(ssd, 47, 53, 4, 4, color, color);
+    ssd1306_rect(ssd, 47, 71, 4, 4, color, color);
+
 }
 
 //desenha a exclamação
@@ -268,7 +281,7 @@ void vDisplay3Task()
     {
         switch(current_stage){
             case GREEN:
-                draw_stick(&ssd, color,animation_frame);
+                draw_car(&ssd, color,animation_frame);
                 animation_frame++;
                 break;
             case YELLOW:

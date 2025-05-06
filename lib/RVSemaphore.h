@@ -13,7 +13,7 @@
 
 #define buzzerA 10
 #define buzzerB 21
-#define PWMLEVEL 128
+#define PWMLEVEL 0
 
 
 /**
@@ -55,14 +55,36 @@ void vBlinkNocturnalTask();
  */
 void vSoundTask();
 
-void draw_stick(ssd1306_t *ssd, bool color, int frame);
+/**
+ * @brief Desenha um carro na tela.
+ * @param ssd Estrutura do display.
+ * @param color Booleano que indica para o laço pintar ou não um pixel.
+ * @param frame Envio de frame para o caso de animação.
+ */
+void draw_car(ssd1306_t *ssd, bool color, int frame);
 
+/**
+ * @brief Desenha uma exclamação na tela.
+ * @param ssd Estrutura do display.
+ * @param color Booleano que indica para o laço pintar ou não um pixel.
+ */
 void draw_attention(ssd1306_t *ssd, bool color);
 
+/**
+ * @brief Desenha um X na tela.
+ * @param ssd Estrutura do display.
+ * @param color Booleano que indica para o laço pintar ou não um pixel.
+ */
 void draw_forbidding(ssd1306_t *ssd, bool color);
 
+/**
+ * @brief Controla o display para mostrar as figuras de acordo com os estados do semáforo.
+ */
 void vDisplay3Task();
 
+/**
+ * @brief Controla o botão alternar a flag de estado noturno.
+ */
 void vButtonTask();
 
 #endif
