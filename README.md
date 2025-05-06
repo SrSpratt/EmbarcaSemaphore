@@ -1,5 +1,5 @@
 # Embarcatech-Residência
-## Embarca-Revisão
+## Embarca-Semáforo
 #### Autor:
 * Roberto Vítor Lima Gomes Rodrigues
 
@@ -7,7 +7,7 @@
 Como projeto introdutório ao conteúdo de tarefas, foi construído um semáforo utilizando tarefas e os seguintes periféricos: Matriz de LEDs, LEDs RGB, Display SSD1306, botões A e B e buzzer.
 
 #### Vídeo de funcionamento
-
+* https://drive.google.com/file/d/1NpWaId_sk3orjeTtkozWjPhio9ZLTc_-/view
 
 
 #### Instruções de compilação
