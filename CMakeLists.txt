@@ -36,6 +36,7 @@ add_executable(${PROJECT_NAME}
         lib/ssd1306.c
         lib/RVsketches.c
         lib/RVgeneral.c
+        lib/RVSemaphore.c
         )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE 
