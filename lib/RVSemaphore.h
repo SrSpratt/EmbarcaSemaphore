@@ -13,7 +13,7 @@
 
 #define buzzerA 10
 #define buzzerB 21
-#define PWMLEVEL 0
+#define PWMLEVEL 128
 
 
 /**
