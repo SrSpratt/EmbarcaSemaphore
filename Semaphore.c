@@ -10,7 +10,7 @@ void gpio_irq_handler(uint gpio, uint32_t events)
 
 int main()
 {
-
+    //inicia o botão B
     gpio_init(botaoB);
     gpio_set_dir(botaoB, GPIO_IN);
     gpio_pull_up(botaoB);
@@ -31,6 +31,7 @@ int main()
 
     gpio_init(buzzerA);
     gpio_set_dir(buzzerA, GPIO_OUT);
+
     //inicia o pwm no buzzer A
     gpio_set_function(buzzerA, GPIO_FUNC_PWM);
     uint8_t slice = pwm_gpio_to_slice_num(buzzerA);
@@ -38,7 +39,7 @@ int main()
     pwm_set_clkdiv(slice, PWM_CLKDIV);
     pwm_set_enabled(slice, true);
 
-    //chama as tarefas
+    //chama as tarefas (todas definidas no RVSemaphore.c e declaradas no RVSemaphore.h)
         //tarefa que "escuta" o pressionamento do botão A para chavear entre modo noturno e diurno
     xTaskCreate(vButtonTask, "Button Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
         //tarefa para os LEDs do semáforo diurno (cada LED fica aceso por 6s)
